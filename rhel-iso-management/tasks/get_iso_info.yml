@@ -1,0 +1,37 @@
+---
+  - name: To get Redhat Access token
+    shell: curl https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token -d grant_type=refresh_token -d client_id=rhsm-api -d refresh_token={{ offline_token }} | jq --raw-output .access_token
+    register: access_token
+
+  - name: Print Access token token
+    debug: 
+      msg: "{{ access_token.stdout }}"
+
+  - name: Calling API to get all resources
+    uri:
+      url: https://api.access.redhat.com/management/v1/images/cset/rhel-8-for-x86_64-baseos-isos
+      method: GET
+      headers:
+        Authorization: Bearer {{ access_token.stdout }}
+        Accept: application/json
+      body_format: json
+      return_content : yes
+    register: output
+
+  - name: filtering checksum of rhel8.1-dvd-iso
+    set_fact:
+      checksum: "{{ item.checksum }}"
+    when: item.filename == "rhel-8.1-x86_64-dvd.iso"
+    loop: "{{ output.json.body }}"
+
+
+  - name: checksum value
+    debug: 
+      msg: "{{ checksum }}"
+
+
+
+
+
+    
+    

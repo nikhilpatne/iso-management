@@ -1,0 +1,21 @@
+---
+  - name: downloading RHEL-8.1-DVD iso file
+    get_url:
+      url: "{{ download_url }}"
+      dest: "{{ download_destination_path }}"
+      client_key: "{{ redhat_entitlment_key }}"
+      client_cert: "{{ redhat_entitlment_certificate }}"
+      validate_certs: no
+    async: 3600
+    poll: 0
+    register: downloaded_rhel_iso
+
+
+  - name: Checking on async task - downloading RHEL-8.1-DVD iso file
+    async_status:
+        jid: "{{ downloaded_rhel_iso.ansible_job_id }}"
+    register: rhel_iso_job_result
+    until: rhel_iso_job_result.finished
+    retries: 200
+    delay: 20                  
+
